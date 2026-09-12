@@ -184,7 +184,7 @@ const MONTH_INDEX = 9;
 TASKS.forEach((taskText, i)=>{
   const d = i + 1;
   const unlockDate = new Date(thisYear, MONTH_INDEX, d);
-  const isLocked = now < unlockDate-1;
+  const isLocked = d !== 1 && now < unlockDate;
 
   const cell = document.createElement('div');
   cell.className = 'cell' + (isLocked ? ' locked' : '');
