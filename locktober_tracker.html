@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Locktober tracker</title>
+<style>
+  :root{
+    --bg:#F6F4EF;
+    --card:#FFFFFF;
+    --ink:#2B2A26;
+    --sub:#7A7870;
+    --line:#E4E1D6;
+    --accent:#8A6D4B;
+    --accent-soft:#EFE6D8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding:20px 14px 60px;
+  }
+  h1{font-size:20px;font-weight:600;margin:0 0 2px;}
+  .sub{color:var(--sub);font-size:13px;margin:0 0 16px;line-height:1.5;}
+
+  .cover{
+    width:100%;
+	aspect-ratio:4/3;
+    border-radius:12px;
+    border:1px dashed var(--line);
+    background:var(--accent-soft) center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--sub);
+    font-size:13px;
+    margin-bottom:18px;
+    text-align:center;
+    padding:12px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+  }
+  @media(min-width:480px){
+    .grid{grid-template-columns:repeat(7,1fr);}
+  }
+
+  .cell{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    min-height:78px;
+    overflow:hidden;
+  }
+  .day-num{
+    position:absolute;
+    top:4px;
+    left:6px;
+    font-size:10px;
+    font-weight:700;
+    color:var(--sub);
+    z-index:3;
+  }
+  .task{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:16px 6px 4px;
+    font-size:11px;
+    color:var(--ink);
+    line-height:1.3;
+  }
+
+  .scratch-cover{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    cursor:pointer;
+    touch-action:none;
+  }
+  .scratch-cover canvas{width:100%;height:100%;display:block;}
+  .reset{
+    position:absolute;
+    bottom:3px;
+    right:5px;
+    font-size:9px;
+    color:var(--sub);
+    z-index:3;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:2px;
+  }
+
+  .cell.locked .reset{display:none;}
+  .lock{
+    position:absolute;
+    inset:0;
+    z-index:4;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:4px;
+    background:var(--card);
+    color:var(--sub);
+    font-size:9px;
+    text-align:center;
+    padding:4px;
+  }
+  .cell.locked .lock{display:flex;}
+  .lock i{font-style:normal;font-size:15px;}
+
+  .hint{font-size:12px;color:var(--sub);margin:16px 2px 0;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<script>
+  const MONTH_TITLE = "Locktober 2026";
+  const COVER_PHOTO_URL = "https://pbs.twimg.com/media/HEBOEEIXkAAFbvr?format=jpg&name=small";
+  const TASKS = [
+    "Task for day 1",
+    "Task for day 2",
+    "Task for day 3",
+    "Task for day 4",
+    "Task for day 5",
+    "Task for day 6",
+    "Task for day 7",
+    "Task for day 8",
+    "Task for day 9",
+    "Task for day 10",
+    "Task for day 11",
+    "Task for day 12",
+    "Task for day 13",
+    "Task for day 14",
+    "Task for day 15",
+    "Task for day 16",
+    "Task for day 17",
+    "Task for day 18",
+    "Task for day 19",
+    "Task for day 20",
+    "Task for day 21",
+    "Task for day 22",
+    "Task for day 23",
+    "Task for day 24",
+    "Task for day 25",
+    "Task for day 26",
+    "Task for day 27",
+    "Task for day 28",
+    "Task for day 29",
+    "Task for day 30",
+    "Task for day 31"
+  ];
+</script>
+
+<h1 id="title"></h1>
+<div class="cover" id="cover-box">no cover photo set — add a URL in COVER_PHOTO_URL above</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+document.getElementById('title').textContent = MONTH_TITLE + ' tracker';
+
+if(COVER_PHOTO_URL){
+  const coverBox = document.getElementById('cover-box');
+  coverBox.style.backgroundImage = `url(${COVER_PHOTO_URL})`;
+  coverBox.textContent = '';
+}
+
+const grid = document.getElementById('grid');
+const now = new Date();
+const thisYear = now.getFullYear();
+const MONTH_INDEX = 8; 
+TASKS.forEach((taskText, i)=>{
+  const d = i + 1;
+  const unlockDate = new Date(thisYear, MONTH_INDEX, d);
+  const isLocked = now < unlockDate;
+
+  const cell = document.createElement('div');
+  cell.className = 'cell' + (isLocked ? ' locked' : '');
+  cell.innerHTML = `
+    <div class="day-num">${d}</div>
+    <div class="task">${taskText}</div>
+    <div class="scratch-cover"><canvas></canvas></div>
+    <div class="lock"><i>&#128274;</i>opens ${MONTH_TITLE.toLowerCase()} ${d}</div>
+    <button class="reset" type="button">reset</button>
+  `;
+  grid.appendChild(cell);
+
+  if(isLocked) return;
+
+  const cover = cell.querySelector('.scratch-cover');
+  const canvas = cell.querySelector('canvas');
+  const resetBtn = cell.querySelector('.reset');
+  const ctx = canvas.getContext('2d');
+
+  function paintCover(){
+    const rect = cover.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.fillStyle = '#C9BFA8';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#8A6D4B';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('scratch', canvas.width/2, canvas.height/2);
+    cover.style.display = 'block';
+  }
+  paintCover();
+
+  let scratching = false;
+  let clearedPixels = 0;
+
+  function scratchAt(x,y){
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x,y,16,0,Math.PI*2);
+    ctx.fill();
+  }
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  }
+  function checkCleared(){
+    clearedPixels++;
+    if(clearedPixels > 8){ cover.style.display = 'none'; }
+  }
+
+  cover.addEventListener('pointerdown', e=>{
+    scratching = true;
+    const p = getPos(e);
+    scratchAt(p.x, p.y);
+    checkCleared();
+  });
+  cover.addEventListener('pointermove', e=>{
+    if(!scratching) return;
+    const p = getPos(e);
+    scratchAt(p.x, p.y);
+    checkCleared();
+  });
+  window.addEventListener('pointerup', ()=>{ scratching = false; });
+
+  resetBtn.addEventListener('click', ()=>{
+    clearedPixels = 0;
+    paintCover();
+  });
+});
+</script>
+
+</body>
+</html>
